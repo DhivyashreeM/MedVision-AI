@@ -1,0 +1,127 @@
+{
+  "dataset_name": "Hugging Face Medical Multimodal Chest Radiograph & Report Dataset (Two-Shard Split)",
+  "source": "Hugging Face (Parquet distribution: train-00000-of-00002.parquet, train-00001-of-00002.parquet)",
+  "original_dataset": "Provenance could not be conclusively determined from the local files (text and radiographic characteristics correspond to de-identified MIMIC-CXR derived chest radiographs and reports)",
+  "license": "Provenance could not be conclusively determined from the local files (no license field embedded in Parquet schema)",
+  "files": [
+    {
+      "filename": "train-00000-of-00002.parquet",
+      "size_bytes": 276780501,
+      "size_mb": 263.96,
+      "rows": 10722,
+      "row_groups": 108
+    },
+    {
+      "filename": "train-00001-of-00002.parquet",
+      "size_bytes": 276998657,
+      "size_mb": 264.17,
+      "rows": 10721,
+      "row_groups": 108
+    }
+  ],
+  "total_rows": 21443,
+  "columns": [
+    "image",
+    "reports"
+  ],
+  "image_modality": "Chest Radiograph (Frontal Chest X-ray, AP/PA projection, predominantly portable/bedside and upright)",
+  "image_field": "image",
+  "image_representation": "Hugging Face Image Feature (struct containing 'bytes' as raw JPEG binary data and 'path' as null)",
+  "image_dimensions": {
+    "width": 512,
+    "height": 512,
+    "channels": 3,
+    "format": "JPEG",
+    "color_mode": "RGB (Grayscale pixel values duplicated across R, G, B channels)",
+    "bit_depth": 8
+  },
+  "label_fields": [],
+  "target_candidates": [
+    {
+      "name": "Pleural Effusion",
+      "prevalence_positive_pct": 28.6,
+      "prevalence_mentions_pct": 79.5,
+      "suitability": "High (Distinct costophrenic angle blunting, optimal for Grad-CAM localization)"
+    },
+    {
+      "name": "Pulmonary Opacity / Pneumonia",
+      "prevalence_positive_pct": 17.4,
+      "prevalence_mentions_pct": 33.6,
+      "suitability": "High (Directly aligns with initial project scope and hackathon problem statement)"
+    },
+    {
+      "name": "Cardiomegaly",
+      "prevalence_positive_pct": 12.3,
+      "prevalence_mentions_pct": 15.1,
+      "suitability": "High (Unambiguous anatomical cardiac silhouette boundary)"
+    },
+    {
+      "name": "Atelectasis",
+      "prevalence_positive_pct": 35.5,
+      "prevalence_mentions_pct": 38.2,
+      "suitability": "Moderate (High positive prevalence, linear/discoidal opacities)"
+    },
+    {
+      "name": "Edema",
+      "prevalence_positive_pct": 20.5,
+      "prevalence_mentions_pct": 32.4,
+      "suitability": "Moderate (Bilateral perihilar alveolar/interstitial pattern)"
+    },
+    {
+      "name": "Normal / Clear",
+      "prevalence_positive_pct": 10.7,
+      "prevalence_mentions_pct": 39.2,
+      "suitability": "High (Essential negative control class for decision support)"
+    }
+  ],
+  "clinical_text_fields": [
+    "reports"
+  ],
+  "structured_fields": [],
+  "patient_id_field": null,
+  "study_id_field": null,
+  "image_id_field": null,
+  "split_information": {
+    "shards_present": [
+      "train-00000-of-00002.parquet",
+      "train-00001-of-00002.parquet"
+    ],
+    "relationship": "Two shards of one combined training split",
+    "official_val_or_test_shards_in_raw": false
+  },
+  "duplicate_information": {
+    "total_images": 21443,
+    "unique_image_hashes": 21443,
+    "image_duplicates": 0,
+    "cross_file_image_duplicates": 0,
+    "total_reports": 21443,
+    "unique_reports": 21010,
+    "cross_file_common_reports": 41,
+    "duplicate_reports_explanation": "Identical normal/stable template boilerplate reports (e.g., 'Compared to prior study there is no significant interval change. No change.') paired with distinct individual radiographs."
+  },
+  "missing_data_summary": {
+    "image_null_count": 0,
+    "image_null_pct": 0.0,
+    "reports_null_count": 0,
+    "reports_null_pct": 0.0
+  },
+  "leakage_risks": [
+    "Target Label Leakage through Text: The 'reports' column contains ground-truth post-imaging radiology reports written by the radiologist after reading the radiograph. Using the full report directly as an input to classify the abnormality constitutes direct target leakage.",
+    "Patient Overlap Risk: Due to the absence of explicit patient ID columns, serial radiographs from the same patient cannot be identified directly by patient ID. Grouping by identical report text is necessary to prevent identical clinical reports from appearing across splits."
+  ],
+  "multimodal_support": {
+    "image": "YES: 21,443 standardized 512x512 frontal chest X-rays fully support DenseNet-121 feature extraction.",
+    "clinical_text": "PARTIALLY: High-quality radiology text exists in 'reports', but cannot be used as an unfiltered input feature to classify the same study without label leakage. Supports report generation, cross-modal retrieval, or clinical text evidence verification.",
+    "structured_data": "NO (in raw data): Zero structured clinical variables in raw Parquet. Supported at runtime via API/Dashboard clinical context input.",
+    "fusion": "PARTIALLY: Supports image + evidence text alignment, but 3-way fusion (image + pre-scan clinical text + structured vitals) requires runtime clinical context entry.",
+    "gradcam": "YES: DenseNet-121 final dense block features.denseblock4.denselayer16 supports Grad-CAM visual attention localization."
+  },
+  "recommended_initial_task": "Chest X-ray Abnormality Classification & Grad-CAM Localization for Pulmonary Opacity / Pneumonia and Pleural Effusion.",
+  "recommended_split_strategy": "Report-clustered 70% Train (15,010 images) / 15% Validation (3,216 images) / 15% Test (3,217 images) split across the combined 21,443 records.",
+  "notes": [
+    "Raw Parquet files in data/raw/ are immutable and verified non-corrupt.",
+    "All images are 512x512 pixels with 0 corrupt images across verified samples.",
+    "Pixel values are grayscale encoded as 3 identical channels in JPEG RGB format.",
+    "No external datasets downloaded in accordance with Phase 2 instructions."
+  ]
+}

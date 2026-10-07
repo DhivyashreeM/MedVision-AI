@@ -1,0 +1,42 @@
+# Baseline Vision Model Configuration (Scheduled for Phase 4)
+# Architecture: Transfer learning for Chest X-ray abnormality classification
+project_name: "MedVision-AI"
+experiment_name: "vision_baseline_densenet121"
+phase: "Phase 4 - Vision Baseline"
+
+model:
+  architecture: "DenseNet121"
+  pretrained: true
+  num_classes: 14
+  target_layer_for_cam: "features.denseblock4.denselayer16"
+  dropout_rate: 0.2
+
+data:
+  image_size: [224, 224]
+  channels: 3
+  batch_size: 16
+  num_workers: 2
+  normalization:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+  split_strategy: "patient_level" # Prevents patient data leakage across splits (Rule 6)
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
+
+training:
+  seed: 42
+  optimizer: "AdamW"
+  learning_rate: 0.0001
+  weight_decay: 0.00001
+  epochs: 10
+  lr_scheduler: "CosineAnnealingLR"
+  early_stopping_patience: 3
+
+metrics_to_track:
+  - "ROC-AUC"
+  - "PR-AUC"
+  - "Sensitivity/Recall"
+  - "Specificity"
+  - "F1-Score"
+  - "Brier Score"

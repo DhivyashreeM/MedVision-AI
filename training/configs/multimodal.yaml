@@ -1,0 +1,31 @@
+# Multimodal Fusion Model Configuration (Scheduled for Phase 9)
+# Combines Chest X-ray visual representations with structured clinical context
+project_name: "MedVision-AI"
+experiment_name: "multimodal_fusion_densenet_clinical"
+phase: "Phase 9 - Multimodal Fusion"
+
+vision_encoder:
+  architecture: "DenseNet121"
+  embedding_dim: 1024
+  freeze_backbone: true
+
+clinical_encoder:
+  input_dim: 16
+  hidden_dims: [64, 128]
+  embedding_dim: 128
+  dropout_rate: 0.2
+
+fusion:
+  strategy: "concatenation_projection" # early concatenation with projection head
+  hidden_dim: 256
+  num_classes: 14
+  dropout_rate: 0.3
+
+data:
+  split_strategy: "patient_level"
+  batch_size: 16
+
+training:
+  seed: 42
+  learning_rate: 0.0005
+  epochs: 15
