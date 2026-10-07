@@ -49,15 +49,17 @@ def assess_image_quality(
     issues: List[str] = []
     warnings: List[str] = []
 
-    # Ensure RGB for consistent analysis
+    # Ensure RGB for consistent analysis, then derive grayscale via PIL
+    # (avoids large intermediate float32 allocation from np.mean(arr, axis=2))
     if image.mode != "RGB":
         image = image.convert("RGB")
 
     w, h = image.size
     arr = np.array(image, dtype=np.uint8)
 
-    # Convert to grayscale for analysis
-    gray = np.mean(arr, axis=2).astype(np.float32)
+    # Use PIL's native grayscale conversion — ITU-R 601 luma weights, no extra alloc
+    gray_pil = image.convert("L")
+    gray = np.array(gray_pil, dtype=np.float32)
 
     # 1. Dimension check
     if w < min_dimension or h < min_dimension:

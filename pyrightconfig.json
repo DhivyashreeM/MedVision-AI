@@ -1,0 +1,22 @@
+{
+  "include": [
+    "app",
+    "scripts",
+    "training",
+    "tests",
+    "frontend"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    ".git"
+  ],
+  "extraPaths": [
+    ".",
+    "C:\\Users\\cathe\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages"
+  ],
+  "pythonVersion": "3.13",
+  "pythonPlatform": "Windows",
+  "typeCheckingMode": "basic",
+  "reportMissingImports": false
+}

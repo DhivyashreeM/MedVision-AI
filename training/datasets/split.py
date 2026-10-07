@@ -33,6 +33,18 @@ def build_clustered_split(
     Returns:
         (train_indices, val_indices, test_indices)
     """
+    import json
+    metadata_dir = Path(__file__).resolve().parent.parent.parent / "data" / "metadata"
+    cached_split_file = metadata_dir / "split_indices.json"
+    if cached_split_file.exists():
+        try:
+            with open(cached_split_file, "r") as f:
+                data = json.load(f)
+                if "train" in data and "val" in data and "test" in data:
+                    return data["train"], data["val"], data["test"]
+        except Exception:
+            pass
+
     import random
     rng = random.Random(seed)
 

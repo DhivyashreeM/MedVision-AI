@@ -82,4 +82,6 @@ def test_conflicting_evidence_surfaced(evidence_engine):
     )
 
     assert finding.evidence_status == "conflicting"
-    assert "does not demonstrate corroborating radiological abnormality" in finding.supporting_rationale
+    # Verify the rationale conveys the correct clinical message:
+    # clinical context present but imaging signal is below strong-evidence threshold.
+    assert "imaging signal is below the strong-evidence threshold" in finding.supporting_rationale

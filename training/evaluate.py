@@ -15,7 +15,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
@@ -53,7 +53,7 @@ def evaluate_model(
     data_loader: DataLoader,
     target_classes: List[str],
     threshold: float = 0.5,
-) -> Dict[str, Dict[str, float]]:
+) -> Dict[str, Dict[str, Any]]:
     """
     Run evaluation across data loader and compute full metric suite.
 
@@ -79,7 +79,7 @@ def evaluate_model(
     y_prob = np.vstack(all_probs)
     y_pred = (y_prob >= threshold).astype(int)
 
-    results: Dict[str, Dict[str, float]] = {}
+    results: Dict[str, Dict[str, Any]] = {}
     auroc_list = []
     auprc_list = []
     f1_list = []
@@ -131,7 +131,7 @@ def evaluate_model(
         metrics["specificity"] = round(spec, 4)
 
         metrics["support_positive"] = int(np.sum(y_true_col))
-        metrics["support_total"] = int(len(y_true_col))
+        metrics["support_total"] = len(y_true_col)
 
         f1_list.append(metrics["f1"])
         precision_list.append(metrics["precision"])
@@ -209,7 +209,9 @@ def main():
     train_idx, val_idx, test_idx = build_clustered_split(available_parquets)
     row_indices = val_idx if args.split == "val" else test_idx
     if args.max_samples:
-        row_indices = row_indices[:args.max_samples]
+        row_indices = sorted(row_indices[:args.max_samples])
+    else:
+        row_indices = sorted(row_indices)
 
     eval_dataset = MedicalMultimodalDataset(
         parquet_paths=available_parquets,

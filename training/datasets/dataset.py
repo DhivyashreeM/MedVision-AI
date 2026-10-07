@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
+import pyarrow as pa
 import pyarrow.parquet as pq
 from PIL import Image
 import torch
@@ -64,6 +65,11 @@ class MedicalMultimodalDataset(Dataset):
         else:
             self._indices = list(range(self._total_rows))
 
+        # Memory-efficient caching of current row group
+        self._parquet_files: Dict[Path, pq.ParquetFile] = {}
+        self._cached_table: Optional[Any] = None
+        self._cached_rg_key: Optional[Tuple[Path, int]] = None
+
     def __len__(self) -> int:
         return len(self._indices)
 
@@ -75,17 +81,32 @@ class MedicalMultimodalDataset(Dataset):
         raise IndexError(f"Global index {global_idx} out of range (total: {self._total_rows})")
 
     def _read_row(self, shard_path: Path, local_idx: int) -> Dict[str, Any]:
-        """Read a single row from a Parquet shard using row group scanning."""
-        pf = pq.ParquetFile(shard_path)
+        """Read a single row from a Parquet shard using row group scanning with cache."""
+        if shard_path not in self._parquet_files:
+            self._parquet_files[shard_path] = pq.ParquetFile(shard_path)
+        pf = self._parquet_files[shard_path]
+
         remaining = local_idx
         for rg in range(pf.metadata.num_row_groups):
             rg_rows = pf.metadata.row_group(rg).num_rows
             if remaining < rg_rows:
-                table = pf.read_row_group(rg, columns=["image", "reports"])
+                rg_key = (shard_path, rg)
+                if self._cached_rg_key == rg_key and self._cached_table is not None:
+                    table = self._cached_table
+                else:
+                    if self._cached_table is not None:
+                        del self._cached_table
+                        self._cached_table = None
+                        pa.default_memory_pool().release_unused()
+                    table = pf.read_row_group(rg, columns=["image", "reports"])
+                    self._cached_table = table
+                    self._cached_rg_key = rg_key
+
                 row = {col: table[col][remaining].as_py() for col in ["image", "reports"]}
                 return row
             remaining -= rg_rows
         raise IndexError(f"Local index {local_idx} exceeds shard row count.")
+
 
     @staticmethod
     def decode_image_bytes(image_data: Any) -> Image.Image:

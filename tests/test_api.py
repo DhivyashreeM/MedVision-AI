@@ -11,9 +11,13 @@ from app.api.main import app
 client = TestClient(app)
 
 
-def _create_sample_jpeg_bytes(width: int = 256, height: int = 256) -> bytes:
-    """Create in-memory JPEG bytes for testing."""
-    img = Image.new("RGB", (width, height), color=(120, 120, 120))
+def _create_sample_jpeg_bytes(width: int = 224, height: int = 224) -> bytes:
+    """Create in-memory JPEG bytes for testing — 224×224 with slight noise for non-zero contrast."""
+    import numpy as np
+    rng = np.random.default_rng(42)
+    # Add slight noise around mid-gray so contrast > 0 and sharpness > 0
+    pixel_data = rng.integers(100, 160, size=(height, width, 3), dtype=np.uint8)
+    img = Image.fromarray(pixel_data, mode="RGB")
     buf = io.BytesIO()
     img.save(buf, format="JPEG")
     return buf.getvalue()

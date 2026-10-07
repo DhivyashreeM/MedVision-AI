@@ -84,6 +84,10 @@ class GradCAM:
         target_layer = self.model.features.denseblock4
         fwd_handle, bwd_handle = self._register_hooks(target_layer)
 
+        # Ensure CPU backward stability on Windows/mkldnn
+        if hasattr(torch.backends, "mkldnn") and torch.backends.mkldnn.is_available():
+            torch.backends.mkldnn.enabled = False
+
         try:
             # Forward pass with gradient enabled
             with torch.enable_grad():
